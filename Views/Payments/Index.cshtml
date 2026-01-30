@@ -1,12 +1,12 @@
-@model List<FinSyncNexus.Models.InvoiceRecord>
+@model List<FinSyncNexus.ViewModels.PaymentItem>
 @{
-    ViewData["Title"] = "Invoices";
+    ViewData["Title"] = "Payments";
 }
 
 <div class="page-header">
     <div>
-        <h1>Invoices</h1>
-        <p class="page-subtitle">View all invoices from connected accounting platforms</p>
+        <h1>Payments</h1>
+        <p class="page-subtitle">Track all payments from connected accounting platforms</p>
     </div>
     <div class="header-actions">
         <form method="get" class="filter-form">
@@ -26,12 +26,12 @@
     <table class="table table-dark table-hover">
         <thead>
             <tr>
-                <th>Due Date</th>
-                <th>Provider</th>
-                <th>Invoice #</th>
+                <th>Date</th>
                 <th>Customer</th>
+                <th>Invoice #</th>
                 <th>Amount</th>
-                <th>Status</th>
+                <th>Method</th>
+                <th>Reference</th>
                 <th>Provider</th>
             </tr>
         </thead>
@@ -39,21 +39,21 @@
         @if (!Model.Any())
         {
             <tr>
-                <td colspan="6" class="text-muted">No invoices available.</td>
+                <td colspan="7" class="text-muted">No payments available.</td>
             </tr>
         }
         else
         {
-            foreach (var invoice in Model)
+            foreach (var item in Model)
             {
                 <tr>
-                    <td>@invoice.Provider</td>
-                    <td>@invoice.InvoiceNumber</td>
-                    <td>@invoice.CustomerName</td>
-                    <td>@invoice.Amount.ToString("C")</td>
-                    <td><span class="badge badge-open">@invoice.Status</span></td>
-                    <td>@(invoice.DueDate?.ToString("d") ?? "-")</td>
-                    <td><span class="pill-provider @(invoice.Provider == "QBO" ? "pill-qbo" : "pill-xero")">@invoice.Provider</span></td>
+                    <td>@item.Date.ToString("MMM dd, yyyy")</td>
+                    <td>@item.Customer</td>
+                    <td>@item.InvoiceNumber</td>
+                    <td class="amount-green">@item.Amount.ToString("C")</td>
+                    <td>@item.Method</td>
+                    <td>@item.Reference</td>
+                    <td><span class="pill-provider @(item.Provider == "QBO" ? "pill-qbo" : "pill-xero")">@item.Provider</span></td>
                 </tr>
             }
         }

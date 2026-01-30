@@ -6,7 +6,19 @@
 <div class="page-header">
     <div>
         <h1>Customers</h1>
-        <p class="text-muted">Read-only customers synced from Xero and QBO.</p>
+        <p class="page-subtitle">View all customers from connected accounting platforms</p>
+    </div>
+    <div class="header-actions">
+        <form method="get" class="filter-form">
+            <select name="provider" class="filter-select" onchange="this.form.submit()">
+                <option value="All" selected="@(ViewBag.Provider == "All")">All Providers</option>
+                <option value="Xero" selected="@(ViewBag.Provider == "Xero")">Xero</option>
+                <option value="QBO" selected="@(ViewBag.Provider == "QBO")">QuickBooks</option>
+            </select>
+        </form>
+        <form asp-controller="Sync" asp-action="SyncNow" method="post">
+            <button class="btn btn-primary" type="submit">Refresh</button>
+        </form>
     </div>
 </div>
 
@@ -18,6 +30,7 @@
                 <th>Name</th>
                 <th>Email</th>
                 <th>Phone</th>
+                <th>Provider</th>
             </tr>
         </thead>
         <tbody>
@@ -36,6 +49,7 @@
                     <td>@customer.Name</td>
                     <td>@(customer.Email ?? "-")</td>
                     <td>@(customer.Phone ?? "-")</td>
+                    <td><span class="pill-provider @(customer.Provider == "QBO" ? "pill-qbo" : "pill-xero")">@customer.Provider</span></td>
                 </tr>
             }
         }

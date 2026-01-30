@@ -88,11 +88,20 @@ body {
   padding: 10px 12px;
   border-radius: 10px;
   transition: background-color 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .nav-link:hover {
   background-color: #1f2937;
   color: #ffffff;
+}
+
+.nav-icon {
+  width: 18px;
+  text-align: center;
+  opacity: 0.8;
 }
 
 .content-area {
@@ -106,6 +115,38 @@ body {
   align-items: center;
   margin-bottom: 24px;
 }
+.header-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.filter-form {
+  margin: 0;
+}
+
+.filter-select {
+  background: #111827;
+  color: #e2e8f0;
+  border: 1px solid #243144;
+  border-radius: 12px;
+  padding: 8px 14px;
+  min-width: 160px;
+}
+
+.filter-select[type="date"] {
+  color-scheme:#e2e8f0 ;
+}
+
+.filter-select[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(80%) sepia(10%) saturate(200%) hue-rotate(180deg);
+  opacity: 0.9;
+}
+
+.date-range {
+  display: flex;
+  gap: 10px;
+}
 
 .page-header h1 {
   margin: 0;
@@ -113,7 +154,12 @@ body {
 }
 
 .text-muted {
-  color: #94a3b8;
+  color: #a9b6c7;
+}
+
+.page-subtitle {
+  color: #b6c2d3;
+  font-size: 14px;
 }
 
 .stats-grid {
@@ -202,12 +248,81 @@ body {
   border-color: #1f2937;
 }
 
+.table-dark thead th {
+  color: #93a4b7;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
 .badge-open {
   background: #f59e0b;
   color: #111827;
   padding: 4px 10px;
   border-radius: 999px;
   font-size: 12px;
+}
+
+.badge-recorded {
+  background: #1d4ed8;
+  color: #e2e8f0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+}
+
+.pill-provider {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-block;
+}
+
+.pill-qbo {
+  background: #14532d;
+  color: #4ade80;
+}
+
+.pill-xero {
+  background: #0f172a;
+  color: #38bdf8;
+  border: 1px solid #1e293b;
+}
+
+.amount-red {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.amount-green {
+  color: #10b981;
+  font-weight: 600;
+}
+
+.report-panel {
+  min-height: 280px;
+}
+
+.empty-state {
+  height: 180px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #94a3b8;
+  gap: 6px;
+}
+
+.empty-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 14px;
+  background: #0f172a;
+  border: 1px solid #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
 }
 
 .connection-list {

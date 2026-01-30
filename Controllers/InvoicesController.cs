@@ -13,13 +13,20 @@ public class InvoicesController : Controller
         _db = db;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? provider)
     {
-        var invoices = await _db.Invoices
-            .AsNoTracking()
+        var query = _db.Invoices.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(provider) && provider != "All")
+        {
+            query = query.Where(i => i.Provider == provider);
+        }
+
+        var invoices = await query
             .OrderByDescending(i => i.CreatedAt)
             .ToListAsync();
 
+        ViewBag.Provider = provider ?? "All";
         return View(invoices);
     }
 }

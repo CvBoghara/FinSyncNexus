@@ -13,13 +13,20 @@ public class AccountsController : Controller
         _db = db;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string? provider)
     {
-        var accounts = await _db.Accounts
-            .AsNoTracking()
+        var query = _db.Accounts.AsNoTracking();
+
+        if (!string.IsNullOrWhiteSpace(provider) && provider != "All")
+        {
+            query = query.Where(a => a.Provider == provider);
+        }
+
+        var accounts = await query
             .OrderBy(a => a.Name)
             .ToListAsync();
 
+        ViewBag.Provider = provider ?? "All";
         return View(accounts);
     }
 }

@@ -1,0 +1,70 @@
+@model FinSyncNexus.ViewModels.ReportViewModel
+@{
+    ViewData["Title"] = "Reports";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Profit & Loss Report</h1>
+        <p class="page-subtitle">View combined financial reports from all connected platforms</p>
+    </div>
+    <form class="header-actions" asp-controller="Reports" asp-action="GenerateReport" method="post">
+        <div class="date-range">
+            <input type="date" name="fromDate" class="filter-select" value="@ViewBag.FromDate" />
+            <input type="date" name="toDate" class="filter-select" value="@ViewBag.ToDate" />
+        </div>
+        <button class="btn btn-primary" type="submit">Generate Report</button>
+    </form>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon bg-green">↑</div>
+        <div class="stat-value">@Model.TotalIncome.ToString("C")</div>
+        <div class="stat-label">Total Income</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-gold">↓</div>
+        <div class="stat-value">@Model.TotalExpenses.ToString("C")</div>
+        <div class="stat-label">Total Expenses</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-purple">⚖</div>
+        <div class="stat-value">@Model.NetProfit.ToString("C")</div>
+        <div class="stat-label">Net Profit</div>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="panel report-panel">
+        <div class="panel-header">
+            <h2>Income Breakdown</h2>
+        </div>
+        <div class="empty-state">
+            <div class="empty-icon">▭</div>
+            <div>No income data available</div>
+        </div>
+    </div>
+    <div class="panel report-panel">
+        <div class="panel-header">
+            <h2>Expense Breakdown</h2>
+        </div>
+        <table class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Account</th>
+                    <th class="text-end">Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var item in Model.ExpenseBreakdown)
+            {
+                <tr>
+                    <td>@item.Account</td>
+                    <td class="amount-red text-end">@item.Amount.ToString("C")</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>
