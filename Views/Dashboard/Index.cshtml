@@ -1,0 +1,108 @@
+@model FinSyncNexus.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Dashboard</h1>
+        <p class="text-muted">Welcome back! Here's an overview of your accounting data.</p>
+    </div>
+    <form asp-controller="Sync" asp-action="SyncNow" method="post">
+        <button class="btn btn-primary" type="submit">Refresh</button>
+    </form>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success mb-4">@TempData["Message"]</div>
+}
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-icon bg-purple">$</div>
+        <div class="stat-value">@Model.TotalRevenue.ToString("C")</div>
+        <div class="stat-label">Total Revenue</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-green">📄</div>
+        <div class="stat-value">@Model.TotalInvoices</div>
+        <div class="stat-label">Total Invoices</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-blue">👥</div>
+        <div class="stat-value">@Model.TotalCustomers</div>
+        <div class="stat-label">Total Customers</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-gold">⏱</div>
+        <div class="stat-value">@Model.OutstandingAmount.ToString("C")</div>
+        <div class="stat-label">Outstanding Amount</div>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Recent Invoices</h2>
+            <a asp-controller="Invoices" asp-action="Index">View All</a>
+        </div>
+
+        <table class="table table-dark table-hover">
+            <thead>
+                <tr>
+                    <th>Invoice #</th>
+                    <th>Customer</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+            @if (!Model.RecentInvoices.Any())
+            {
+                <tr>
+                    <td colspan="4" class="text-muted">No invoices yet. Connect Xero or QBO to load data.</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var invoice in Model.RecentInvoices)
+                {
+                    <tr>
+                        <td>@invoice.InvoiceNumber</td>
+                        <td>@invoice.CustomerName</td>
+                        <td>@invoice.Amount.ToString("C")</td>
+                        <td><span class="badge badge-open">@invoice.Status</span></td>
+                    </tr>
+                }
+            }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h2>Connected Accounts</h2>
+            <a asp-controller="Connections" asp-action="Index">Manage</a>
+        </div>
+
+        <div class="connection-list">
+            @foreach (var connection in Model.Connections.OrderBy(c => c.Provider))
+            {
+                <div class="connection-card">
+                    <div class="connection-logo">@connection.Provider</div>
+                    <div>
+                        <div class="connection-name">@connection.Provider</div>
+                        <div class="connection-status">
+                            @(connection.IsConnected ? "Connected" : "Not connected")
+                        </div>
+                    </div>
+                </div>
+            }
+            @if (!Model.Connections.Any())
+            {
+                <div class="text-muted">No connections found.</div>
+            }
+        </div>
+    </div>
+</div>

@@ -1,0 +1,44 @@
+@model List<FinSyncNexus.Models.CustomerRecord>
+@{
+    ViewData["Title"] = "Customers";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Customers</h1>
+        <p class="text-muted">Read-only customers synced from Xero and QBO.</p>
+    </div>
+</div>
+
+<div class="panel">
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Phone</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="4" class="text-muted">No customers available.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var customer in Model)
+            {
+                <tr>
+                    <td>@customer.Provider</td>
+                    <td>@customer.Name</td>
+                    <td>@(customer.Email ?? "-")</td>
+                    <td>@(customer.Phone ?? "-")</td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

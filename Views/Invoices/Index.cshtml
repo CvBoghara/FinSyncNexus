@@ -1,0 +1,48 @@
+@model List<FinSyncNexus.Models.InvoiceRecord>
+@{
+    ViewData["Title"] = "Invoices";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Invoices</h1>
+        <p class="text-muted">Read-only invoices synced from Xero and QBO.</p>
+    </div>
+</div>
+
+<div class="panel">
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>Invoice #</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Due Date</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="6" class="text-muted">No invoices available.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var invoice in Model)
+            {
+                <tr>
+                    <td>@invoice.Provider</td>
+                    <td>@invoice.InvoiceNumber</td>
+                    <td>@invoice.CustomerName</td>
+                    <td>@invoice.Amount.ToString("C")</td>
+                    <td><span class="badge badge-open">@invoice.Status</span></td>
+                    <td>@(invoice.DueDate?.ToString("d") ?? "-")</td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,44 @@
+@model List<FinSyncNexus.Models.AccountRecord>
+@{
+    ViewData["Title"] = "Accounts";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Accounts</h1>
+        <p class="text-muted">Read-only chart of accounts from Xero and QBO.</p>
+    </div>
+</div>
+
+<div class="panel">
+    <table class="table table-dark table-hover">
+        <thead>
+            <tr>
+                <th>Provider</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Code</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (!Model.Any())
+        {
+            <tr>
+                <td colspan="4" class="text-muted">No accounts available.</td>
+            </tr>
+        }
+        else
+        {
+            foreach (var account in Model)
+            {
+                <tr>
+                    <td>@account.Provider</td>
+                    <td>@account.Name</td>
+                    <td>@account.Type</td>
+                    <td>@(account.Code ?? "-")</td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>

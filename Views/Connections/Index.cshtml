@@ -1,0 +1,45 @@
+@model List<FinSyncNexus.Models.ConnectionStatus>
+@{
+    ViewData["Title"] = "Connections";
+}
+
+<div class="page-header">
+    <div>
+        <h1>Connections</h1>
+        <p class="text-muted">Connect Xero and QBO to sync read-only data.</p>
+    </div>
+</div>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-success mb-4">@TempData["Message"]</div>
+}
+
+<div class="connection-grid">
+    @foreach (var connection in Model)
+    {
+        <div class="panel connection-panel">
+            <div class="panel-header">
+                <h2>@connection.Provider</h2>
+            </div>
+            <div class="connection-body">
+                <div class="connection-status">
+                    Status: <strong>@(connection.IsConnected ? "Connected" : "Not connected")</strong>
+                </div>
+                <div class="text-muted">
+                    Last Sync: @(connection.LastSyncAt?.ToString("g") ?? "Not synced")
+                </div>
+                <div class="mt-3">
+                    @if (connection.Provider == "Xero")
+                    {
+                        <a class="btn btn-primary" href="/auth/xero/connect">Connect Xero</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-primary" href="/auth/qbo/connect">Connect QBO</a>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</div>

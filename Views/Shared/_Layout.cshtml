@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FinSyncNexus</title>
+    <script type="importmap"></script>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/FinSyncNexus.styles.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="brand-badge">FN</div>
+                <span>FinSync</span>
+            </div>
+
+            <nav class="side-nav">
+                <div class="nav-section">Main</div>
+                <a class="nav-link" asp-controller="Dashboard" asp-action="Index">Dashboard</a>
+
+                <div class="nav-section">Accounting</div>
+                <a class="nav-link" asp-controller="Invoices" asp-action="Index">Invoices</a>
+                <a class="nav-link" asp-controller="Customers" asp-action="Index">Customers</a>
+                <a class="nav-link" asp-controller="Accounts" asp-action="Index">Accounts</a>
+
+                <div class="nav-section">Settings</div>
+                <a class="nav-link" asp-controller="Connections" asp-action="Index">Connections</a>
+                <a class="nav-link" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            </nav>
+        </aside>
+
+        <div class="content-area">
+            <main role="main">
+                @RenderBody()
+            </main>
+
+            <footer class="footer">
+                <div>&copy; 2026 - FinSyncNexus</div>
+            </footer>
+        </div>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
