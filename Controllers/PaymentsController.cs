@@ -1,35 +1,32 @@
-using FinSyncNexus.ViewModels;
+using FinSyncNexus.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinSyncNexus.Controllers;
 
 public class PaymentsController : Controller
 {
-    public IActionResult Index(string? provider)
+    private readonly AppDbContext _db;
+
+    public PaymentsController(AppDbContext db)
     {
-        var data = BuildDummyPayments();
+        _db = db;
+    }
+
+    public async Task<IActionResult> Index(string? provider)
+    {
+        var query = _db.Payments.AsNoTracking();
 
         if (!string.IsNullOrWhiteSpace(provider) && provider != "All")
         {
-            data = data.Where(p => p.Provider == provider).ToList();
+            query = query.Where(p => p.Provider == provider);
         }
+
+        var data = await query
+            .OrderByDescending(p => p.Date)
+            .ToListAsync();
 
         ViewBag.Provider = provider ?? "All";
         return View(data);
-    }
-
-    private List<PaymentItem> BuildDummyPayments()
-    {
-        return new List<PaymentItem>
-        {
-            new() { Date = DateTime.Today.AddDays(-33), Customer = "0969 Ocean View Road", Amount = 387.00m, Provider = "QBO" },
-            new() { Date = DateTime.Today.AddDays(-33), Customer = "Cool Cars", Amount = 1675.52m, Provider = "QBO" },
-            new() { Date = DateTime.Today.AddDays(-34), Customer = "Amy's Bird Sanctuary", Amount = 220.00m, Provider = "QBO" },
-            new() { Date = DateTime.Today.AddDays(-34), Customer = "Travis Waldron", Amount = 81.00m, Provider = "QBO" },
-            new() { Date = DateTime.Today.AddDays(-35), Customer = "Amy's Bird Sanctuary", Amount = 108.00m, Provider = "QBO" },
-            new() { Date = DateTime.Today.AddDays(-35), Customer = "55 Twin Lane", Amount = 50.00m, Provider = "QBO" },
-            new() { Date = DateTime.Today.AddDays(-36), Customer = "John Melton", Amount = 300.00m, Provider = "QBO" },
-            new() { Date = DateTime.Today.AddDays(-37), Customer = "Sushi by Katsuyuki", Amount = 80.00m, Provider = "QBO" }
-        };
     }
 }

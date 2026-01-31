@@ -1,4 +1,4 @@
-@model List<FinSyncNexus.ViewModels.ExpenseItem>
+@model List<FinSyncNexus.Models.ExpenseRecord>
 @{
     ViewData["Title"] = "Expenses";
 }
@@ -49,7 +49,7 @@
                 <tr>
                     <td>@item.Date.ToString("MMM dd, yyyy")</td>
                     <td>@item.Description</td>
-                    <td>@item.Vendor</td>
+                    <td>@item.VendorName</td>
                     <td>@item.Category</td>
                     <td class="amount-red">@item.Amount.ToString("C")</td>
                     <td><span class="badge badge-recorded">@item.Status.ToUpperInvariant()</span></td>

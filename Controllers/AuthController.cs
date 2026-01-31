@@ -46,16 +46,18 @@ public class AuthController : Controller
             return RedirectToAction("Index", "Connections");
         }
 
-        var (accessToken, refreshToken, tenantId) = await _xeroOAuthService.ExchangeCodeAsync(code);
+        var token = await _xeroOAuthService.ExchangeCodeAsync(code);
 
         var connection = await _db.Connections.FirstOrDefaultAsync(c => c.Provider == "Xero")
                          ?? new ConnectionStatus { Provider = "Xero" };
 
         connection.IsConnected = true;
         connection.ConnectedAt = DateTime.UtcNow;
-        connection.AccessToken = accessToken;
-        connection.RefreshToken = refreshToken;
-        connection.TenantId = tenantId;
+        connection.AccessToken = token.AccessToken;
+        connection.RefreshToken = token.RefreshToken;
+        connection.TenantId = token.TenantId;
+        connection.AccessTokenExpiresAtUtc = token.AccessTokenExpiresAtUtc;
+        connection.RefreshTokenExpiresAtUtc = token.RefreshTokenExpiresAtUtc;
 
         if (connection.Id == 0)
         {
@@ -63,10 +65,16 @@ public class AuthController : Controller
         }
 
         await _db.SaveChangesAsync();
-        await _syncService.EnsureDummyDataAsync("Xero");
-        await _syncService.MarkSyncedAsync("Xero");
-
-        TempData["Message"] = "Xero connection success. Dummy data loaded.";
+        var synced = await _syncService.SyncProviderAsync(connection);
+        if (synced)
+        {
+            await _syncService.MarkSyncedAsync("Xero");
+            TempData["Message"] = "Xero connection success. Real data synced.";
+        }
+        else
+        {
+            TempData["Message"] = "Xero connected. Sync failed - check tokens/tenant.";
+        }
         return RedirectToAction("Index", "Dashboard");
     }
 
@@ -90,15 +98,17 @@ public class AuthController : Controller
             return RedirectToAction("Index", "Connections");
         }
 
-        var (accessToken, refreshToken) = await _qboOAuthService.ExchangeCodeAsync(code);
+        var token = await _qboOAuthService.ExchangeCodeAsync(code);
 
         var connection = await _db.Connections.FirstOrDefaultAsync(c => c.Provider == "QBO")
                          ?? new ConnectionStatus { Provider = "QBO" };
 
         connection.IsConnected = true;
         connection.ConnectedAt = DateTime.UtcNow;
-        connection.AccessToken = accessToken;
-        connection.RefreshToken = refreshToken;
+        connection.AccessToken = token.AccessToken;
+        connection.RefreshToken = token.RefreshToken;
+        connection.AccessTokenExpiresAtUtc = token.AccessTokenExpiresAtUtc;
+        connection.RefreshTokenExpiresAtUtc = token.RefreshTokenExpiresAtUtc;
         connection.RealmId = realmId;
 
         if (connection.Id == 0)
@@ -107,10 +117,16 @@ public class AuthController : Controller
         }
 
         await _db.SaveChangesAsync();
-        await _syncService.EnsureDummyDataAsync("QBO");
-        await _syncService.MarkSyncedAsync("QBO");
-
-        TempData["Message"] = "QBO connection success. Dummy data loaded.";
+        var synced = await _syncService.SyncProviderAsync(connection);
+        if (synced)
+        {
+            await _syncService.MarkSyncedAsync("QBO");
+            TempData["Message"] = "QBO connection success. Real data synced.";
+        }
+        else
+        {
+            TempData["Message"] = "QBO connected. Sync failed - check tokens/company.";
+        }
         return RedirectToAction("Index", "Dashboard");
     }
 }

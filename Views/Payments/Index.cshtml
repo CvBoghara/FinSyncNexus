@@ -1,4 +1,4 @@
-@model List<FinSyncNexus.ViewModels.PaymentItem>
+@model List<FinSyncNexus.Models.PaymentRecord>
 @{
     ViewData["Title"] = "Payments";
 }
@@ -48,7 +48,7 @@
             {
                 <tr>
                     <td>@item.Date.ToString("MMM dd, yyyy")</td>
-                    <td>@item.Customer</td>
+                    <td>@item.CustomerName</td>
                     <td>@item.InvoiceNumber</td>
                     <td class="amount-green">@item.Amount.ToString("C")</td>
                     <td>@item.Method</td>

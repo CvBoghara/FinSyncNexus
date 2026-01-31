@@ -13,6 +13,9 @@ public class AppDbContext : DbContext
     public DbSet<InvoiceRecord> Invoices => Set<InvoiceRecord>();
     public DbSet<CustomerRecord> Customers => Set<CustomerRecord>();
     public DbSet<AccountRecord> Accounts => Set<AccountRecord>();
+    public DbSet<PaymentRecord> Payments => Set<PaymentRecord>();
+    public DbSet<ExpenseRecord> Expenses => Set<ExpenseRecord>();
+    public DbSet<SyncErrorLog> SyncErrors => Set<SyncErrorLog>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -36,6 +39,22 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<AccountRecord>()
             .HasIndex(a => new { a.Provider, a.ExternalId })
+            .IsUnique();
+
+        modelBuilder.Entity<PaymentRecord>()
+            .Property(p => p.Amount)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<PaymentRecord>()
+            .HasIndex(p => new { p.Provider, p.ExternalId })
+            .IsUnique();
+
+        modelBuilder.Entity<ExpenseRecord>()
+            .Property(e => e.Amount)
+            .HasPrecision(18, 2);
+
+        modelBuilder.Entity<ExpenseRecord>()
+            .HasIndex(e => new { e.Provider, e.ExternalId })
             .IsUnique();
     }
 }

@@ -46,7 +46,7 @@ public class XeroOAuthService
         return $"{AuthEndpoint}?{queryString}";
     }
 
-    public async Task<(string AccessToken, string RefreshToken, string TenantId)> ExchangeCodeAsync(string code)
+    public async Task<OAuthTokenResult> ExchangeCodeAsync(string code)
     {
         var body = new Dictionary<string, string?>
         {
@@ -71,9 +71,58 @@ public class XeroOAuthService
 
         var accessToken = tokenDoc.RootElement.GetProperty("access_token").GetString() ?? string.Empty;
         var refreshToken = tokenDoc.RootElement.GetProperty("refresh_token").GetString() ?? string.Empty;
+        var expiresIn = tokenDoc.RootElement.GetProperty("expires_in").GetInt32();
+        var refreshExpiresIn = tokenDoc.RootElement.TryGetProperty("refresh_token_expires_in", out var refreshExp)
+            ? refreshExp.GetInt32()
+            : 0;
 
         var tenantId = await FetchTenantIdAsync(accessToken);
-        return (accessToken, refreshToken, tenantId);
+        return new OAuthTokenResult
+        {
+            AccessToken = accessToken,
+            RefreshToken = refreshToken,
+            TenantId = tenantId,
+            AccessTokenExpiresAtUtc = DateTime.UtcNow.AddSeconds(expiresIn),
+            RefreshTokenExpiresAtUtc = refreshExpiresIn > 0 ? DateTime.UtcNow.AddSeconds(refreshExpiresIn) : null
+        };
+    }
+
+    public async Task<OAuthTokenResult> RefreshAccessTokenAsync(string refreshToken)
+    {
+        var body = new Dictionary<string, string?>
+        {
+            ["grant_type"] = "refresh_token",
+            ["refresh_token"] = refreshToken
+        };
+
+        var request = new HttpRequestMessage(HttpMethod.Post, TokenEndpoint)
+        {
+            Content = new FormUrlEncodedContent(body!)
+        };
+
+        var basicAuth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{_options.ClientId}:{_options.ClientSecret}"));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
+
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        var json = await response.Content.ReadAsStringAsync();
+        using var tokenDoc = JsonDocument.Parse(json);
+
+        var accessToken = tokenDoc.RootElement.GetProperty("access_token").GetString() ?? string.Empty;
+        var newRefreshToken = tokenDoc.RootElement.GetProperty("refresh_token").GetString() ?? string.Empty;
+        var expiresIn = tokenDoc.RootElement.GetProperty("expires_in").GetInt32();
+        var refreshExpiresIn = tokenDoc.RootElement.TryGetProperty("refresh_token_expires_in", out var refreshExp)
+            ? refreshExp.GetInt32()
+            : 0;
+
+        return new OAuthTokenResult
+        {
+            AccessToken = accessToken,
+            RefreshToken = newRefreshToken,
+            AccessTokenExpiresAtUtc = DateTime.UtcNow.AddSeconds(expiresIn),
+            RefreshTokenExpiresAtUtc = refreshExpiresIn > 0 ? DateTime.UtcNow.AddSeconds(refreshExpiresIn) : null
+        };
     }
 
     private async Task<string> FetchTenantIdAsync(string accessToken)

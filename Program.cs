@@ -10,10 +10,6 @@ builder.Services.AddHttpClient();
 
 builder.Services.Configure<FinSyncNexus.Options.OAuthOptions>(
     builder.Configuration.GetSection("OAuth"));
-builder.Services.Configure<FinSyncNexus.Options.SyncOptions>(
-    builder.Configuration.GetSection("SyncOptions"));
-
-builder.Services.AddScoped<FinSyncNexus.Services.DummyDataService>();
 builder.Services.AddScoped<FinSyncNexus.Services.SyncService>();
 builder.Services.AddScoped<FinSyncNexus.Services.XeroOAuthService>();
 builder.Services.AddScoped<FinSyncNexus.Services.QboOAuthService>();

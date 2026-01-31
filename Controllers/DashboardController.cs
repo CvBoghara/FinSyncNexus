@@ -21,12 +21,6 @@ public class DashboardController : Controller
     {
         var connections = await _db.Connections.AsNoTracking().ToListAsync();
 
-        // If at least one provider is connected, ensure dummy data exists.
-        foreach (var connection in connections.Where(c => c.IsConnected))
-        {
-            await _syncService.EnsureDummyDataAsync(connection.Provider);
-        }
-
         var invoices = await _db.Invoices.AsNoTracking().ToListAsync();
         var customers = await _db.Customers.AsNoTracking().ToListAsync();
 

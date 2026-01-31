@@ -9,6 +9,8 @@ public class ConnectionStatus
     public DateTime? LastSyncAt { get; set; }
     public string? AccessToken { get; set; }
     public string? RefreshToken { get; set; }
+    public DateTime? AccessTokenExpiresAtUtc { get; set; }
+    public DateTime? RefreshTokenExpiresAtUtc { get; set; }
     public string? RealmId { get; set; } // QBO company id
     public string? TenantId { get; set; } // Xero tenant id
 }

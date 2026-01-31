@@ -27,16 +27,23 @@ public class SyncController : Controller
             return RedirectToAction("Index", "Dashboard");
         }
 
-        // For college demo: keep read-only and use dummy data unless real API is enabled.
+        var syncFailures = new List<string>();
         foreach (var connection in connections)
         {
-            await _syncService.SyncProviderAsync(connection);
-            await _syncService.MarkSyncedAsync(connection.Provider);
+            var synced = await _syncService.SyncProviderAsync(connection);
+            if (synced)
+            {
+                await _syncService.MarkSyncedAsync(connection.Provider);
+            }
+            else
+            {
+                syncFailures.Add(connection.Provider);
+            }
         }
 
-        TempData["Message"] = _syncService.UseRealApi()
-            ? "Real data sync completed."
-            : "Dummy data sync completed.";
+        TempData["Message"] = syncFailures.Any()
+            ? $"Sync failed for: {string.Join(", ", syncFailures)}. Check tokens and connection."
+            : "Real data sync completed.";
 
         return RedirectToAction("Index", "Dashboard");
     }

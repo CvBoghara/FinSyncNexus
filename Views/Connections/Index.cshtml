@@ -26,7 +26,7 @@
                 <div class="connection-status">
                     Status: <strong>@(connection.IsConnected ? "Connected" : "Not connected")</strong>
                 </div>
-                <div class="text-muted">
+                <div class="connection-body">
                     Last Sync: @(connection.LastSyncAt?.ToString("g") ?? "Not synced")
                 </div>
                 <div class="mt-3">
