@@ -79,17 +79,18 @@ public class SyncService
             _httpClient.DefaultRequestHeaders.Accept.Clear();
             _httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            var invoicesJson = await _httpClient.GetStringAsync("https://api.xero.com/api.xro/2.0/Invoices");
-            var contactsJson = await _httpClient.GetStringAsync("https://api.xero.com/api.xro/2.0/Contacts");
-            var accountsJson = await _httpClient.GetStringAsync("https://api.xero.com/api.xro/2.0/Accounts");
-            var paymentsJson = await _httpClient.GetStringAsync("https://api.xero.com/api.xro/2.0/Payments");
-            var transactionsJson = await _httpClient.GetStringAsync("https://api.xero.com/api.xro/2.0/BankTransactions");
+            var invoicesJson = await _httpClient.GetStringAsync(BuildXeroUrl("Invoices"));
+            var contactsJson = await _httpClient.GetStringAsync(BuildXeroUrl("Contacts"));
+            var accountsJson = await _httpClient.GetStringAsync(BuildXeroUrl("Accounts"));
+            var paymentsJson = await _httpClient.GetStringAsync(BuildXeroUrl("Payments"));
+            var transactionsJson = await _httpClient.GetStringAsync(BuildXeroUrl("BankTransactions"));
 
             await UpsertXeroInvoicesAsync(invoicesJson);
             await UpsertXeroCustomersAsync(contactsJson);
             await UpsertXeroAccountsAsync(accountsJson);
             await UpsertXeroPaymentsAsync(paymentsJson);
             await UpsertXeroExpensesAsync(transactionsJson);
+            await UpsertXeroBillsAsync(invoicesJson);
 
             return true;
         }
@@ -117,17 +118,19 @@ public class SyncService
             _httpClient.DefaultRequestHeaders.Remove("xero-tenant-id");
 
             var baseUrl = $"{_qboApiBaseUrl}/v3/company/{connection.RealmId}/query";
-            var invoicesJson = await _httpClient.GetStringAsync($"{baseUrl}?query=select%20*%20from%20Invoice");
-            var customersJson = await _httpClient.GetStringAsync($"{baseUrl}?query=select%20*%20from%20Customer");
-            var accountsJson = await _httpClient.GetStringAsync($"{baseUrl}?query=select%20*%20from%20Account");
-            var paymentsJson = await _httpClient.GetStringAsync($"{baseUrl}?query=select%20*%20from%20Payment");
-            var expensesJson = await _httpClient.GetStringAsync($"{baseUrl}?query=select%20*%20from%20Purchase");
+            var invoicesJson = await GetQboJsonAsync(baseUrl, "Invoice");
+            var customersJson = await GetQboJsonAsync(baseUrl, "Customer");
+            var accountsJson = await GetQboJsonAsync(baseUrl, "Account");
+            var paymentsJson = await GetQboJsonAsync(baseUrl, "Payment");
+            var expensesJson = await GetQboJsonAsync(baseUrl, "Purchase");
+            var billsJson = await GetQboJsonAsync(baseUrl, "Bill");
 
             await UpsertQboInvoicesAsync(invoicesJson);
             await UpsertQboCustomersAsync(customersJson);
             await UpsertQboAccountsAsync(accountsJson);
             await UpsertQboPaymentsAsync(paymentsJson);
             await UpsertQboExpensesAsync(expensesJson);
+            await UpsertQboBillsAsync(billsJson);
 
             return true;
         }
@@ -450,6 +453,77 @@ public class SyncService
         await UpsertExpensesAsync("QBO", records);
     }
 
+    private async Task UpsertQboBillsAsync(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("QueryResponse", out var response))
+        {
+            return;
+        }
+
+        if (!response.TryGetProperty("Bill", out var billArray))
+        {
+            return;
+        }
+
+        var records = billArray.EnumerateArray()
+            .Select(item => new ExpenseRecord
+            {
+                Provider = "QBO",
+                ExternalId = TryGetString(item, "Id", string.Empty),
+                Date = ParseDate(item, "TxnDate") ?? DateTime.UtcNow,
+                Description = TryGetString(item, "PrivateNote", "Bill"),
+                VendorName = TryGetRefName(item, "VendorRef", "-"),
+                Category = TryGetRefName(item, "APAccountRef", "Bill"),
+                Amount = TryGetDecimal(item, "TotalAmt"),
+                Status = TryGetString(item, "Balance", "Recorded"),
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+
+        await UpsertExpensesAsync("QBO", records);
+    }
+
+    private async Task UpsertXeroBillsAsync(string json)
+    {
+        using var doc = JsonDocument.Parse(json);
+        if (!doc.RootElement.TryGetProperty("Invoices", out var invoiceArray))
+        {
+            return;
+        }
+
+        var records = invoiceArray.EnumerateArray()
+            .Where(item => item.TryGetProperty("Type", out var type) &&
+                           type.GetString() == "ACCPAY")
+            .Select(item => new ExpenseRecord
+            {
+                Provider = "Xero",
+                ExternalId = TryGetString(item, "InvoiceID", string.Empty),
+                Date = ParseDate(item, "Date") ?? DateTime.UtcNow,
+                Description = TryGetString(item, "Reference", "Bill"),
+                VendorName = item.TryGetProperty("Contact", out var contact)
+                    ? contact.GetProperty("Name").GetString() ?? "-"
+                    : "-",
+                Category = "Bill",
+                Amount = TryGetDecimal(item, "Total"),
+                Status = TryGetString(item, "Status", "Recorded"),
+                CreatedAt = DateTime.UtcNow
+            }).ToList();
+
+        await UpsertExpensesAsync("Xero", records);
+    }
+
+    private static string BuildXeroUrl(string resource)
+    {
+        return $"https://api.xero.com/api.xro/2.0/{resource}?order=UpdatedDateUTC%20DESC";
+    }
+
+    private async Task<string> GetQboJsonAsync(string baseUrl, string entity)
+    {
+        var query = $"select * from {entity} orderby MetaData.LastUpdatedTime desc maxresults 1000";
+        var url = $"{baseUrl}?query={Uri.EscapeDataString(query)}";
+        return await _httpClient.GetStringAsync(url);
+    }
+
     private async Task UpsertPaymentsAsync(string provider, List<PaymentRecord> records)
     {
         var existing = await _db.Payments.Where(p => p.Provider == provider).ToListAsync();
@@ -659,7 +733,7 @@ public class SyncService
         return "-";
     }
 
-    private static string TryGetString(JsonElement item, string property, string fallback)
+    private static string? TryGetString(JsonElement item, string property, string? fallback)
     {
         if (item.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.String)
         {
