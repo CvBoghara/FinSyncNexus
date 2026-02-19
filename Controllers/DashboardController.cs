@@ -1,4 +1,5 @@
 using FinSyncNexus.Data;
+using FinSyncNexus.Helpers;
 using FinSyncNexus.Services;
 using FinSyncNexus.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -17,15 +18,30 @@ public class DashboardController : Controller
         _syncService = syncService;
     }
 
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(FilterViewModel filters)
     {
+        filters = FilterEngine.Normalize(filters);
         var connections = await _db.Connections.AsNoTracking().ToListAsync();
 
-        var invoices = await _db.Invoices.AsNoTracking().ToListAsync();
-        var customers = await _db.Customers.AsNoTracking().ToListAsync();
+        var invoiceQuery = FilterEngine.ApplyInvoiceFilters(_db.Invoices.AsNoTracking(), filters);
+        var invoices = await invoiceQuery.ToListAsync();
+
+        var customerQuery = _db.Customers.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(filters.Provider) && filters.Provider != "All")
+        {
+            customerQuery = customerQuery.Where(c => c.Provider == filters.Provider);
+        }
+
+        if (!string.IsNullOrWhiteSpace(filters.CustomerVendor))
+        {
+            customerQuery = customerQuery.Where(c => c.Name.Contains(filters.CustomerVendor));
+        }
+
+        var customers = await customerQuery.ToListAsync();
 
         var viewModel = new DashboardViewModel
         {
+            Filters = filters,
             TotalRevenue = invoices.Sum(i => i.Amount),
             TotalInvoices = invoices.Count,
             TotalCustomers = customers.Count,

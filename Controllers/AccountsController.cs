@@ -1,4 +1,6 @@
 using FinSyncNexus.Data;
+using FinSyncNexus.Helpers;
+using FinSyncNexus.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,20 +15,17 @@ public class AccountsController : Controller
         _db = db;
     }
 
-    public async Task<IActionResult> Index(string? provider)
+    public async Task<IActionResult> Index(FilterViewModel filters)
     {
-        var query = _db.Accounts.AsNoTracking();
-
-        if (!string.IsNullOrWhiteSpace(provider) && provider != "All")
-        {
-            query = query.Where(a => a.Provider == provider);
-        }
+        filters = FilterEngine.Normalize(filters);
+        var query = FilterEngine.ApplyAccountFilters(_db.Accounts.AsNoTracking(), filters);
 
         var accounts = await query
             .OrderBy(a => a.Name)
             .ToListAsync();
 
-        ViewBag.Provider = provider ?? "All";
+        ViewBag.Provider = filters.Provider;
+        ViewBag.Filters = filters;
         return View(accounts);
     }
 }

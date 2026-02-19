@@ -3,24 +3,20 @@
     ViewData["Title"] = "Expenses";
 }
 
-<div class="page-header">
+<div class="page-header page-header-left">
     <div>
         <h1>Expenses</h1>
         <p class="page-subtitle">Track all expenses from connected accounting platforms</p>
     </div>
     <div class="header-actions">
-        <form method="get" class="filter-form">
-            <select name="provider" class="filter-select" onchange="this.form.submit()">
-                <option value="All" selected="@(ViewBag.Provider == "All")">All Providers</option>
-                <option value="Xero" selected="@(ViewBag.Provider == "Xero")">Xero</option>
-                <option value="QBO" selected="@(ViewBag.Provider == "QBO")">QuickBooks</option>
-            </select>
-        </form>
+        @await Html.PartialAsync("_GlobalFilters", (FinSyncNexus.ViewModels.FilterViewModel)ViewBag.Filters, new ViewDataDictionary(ViewData) { ["RenderMode"] = "Button" })
         <form asp-controller="Sync" asp-action="SyncNow" method="post">
             <button class="btn btn-primary" type="submit">Refresh</button>
         </form>
     </div>
 </div>
+
+@await Html.PartialAsync("_GlobalFilters", (FinSyncNexus.ViewModels.FilterViewModel)ViewBag.Filters, new ViewDataDictionary(ViewData) { ["RenderMode"] = "Badges" })
 
 <div class="panel">
     <table class="table table-dark table-hover">

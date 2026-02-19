@@ -4,6 +4,7 @@ namespace FinSyncNexus.ViewModels;
 
 public class DashboardViewModel
 {
+    public FilterViewModel Filters { get; set; } = new();
     public decimal TotalRevenue { get; set; }
     public int TotalInvoices { get; set; }
     public int TotalCustomers { get; set; }

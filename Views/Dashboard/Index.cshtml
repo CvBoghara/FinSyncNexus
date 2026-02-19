@@ -3,20 +3,25 @@
     ViewData["Title"] = "Dashboard";
 }
 
-<div class="page-header">
+<div class="page-header page-header-left">
     <div>
         <h1>Dashboard</h1>
         <p class="page-subtitle">Welcome back! Here's an overview of your accounting data.</p>
     </div>
-    <form asp-controller="Sync" asp-action="SyncNow" method="post">
-        <button class="btn btn-primary" type="submit">Refresh</button>
-    </form>
+    <div class="header-actions">
+        @await Html.PartialAsync("_GlobalFilters", Model.Filters, new ViewDataDictionary(ViewData) { ["RenderMode"] = "Button" })
+        <form asp-controller="Sync" asp-action="SyncNow" method="post">
+            <button class="btn btn-primary" type="submit">Refresh</button>
+        </form>
+    </div>
 </div>
 
 @if (TempData["Message"] != null)
 {
     <div class="alert alert-success mb-4">@TempData["Message"]</div>
 }
+
+@await Html.PartialAsync("_GlobalFilters", Model.Filters, new ViewDataDictionary(ViewData) { ["RenderMode"] = "Badges" })
 
 <div class="stats-grid">
     <div class="stat-card">

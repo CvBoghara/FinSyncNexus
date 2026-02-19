@@ -1,8 +1,14 @@
 using FinSyncNexus.Data;
 using FinSyncNexus.Models;
+using FinSyncNexus.Options;
 using FinSyncNexus.Services;
+using FinSyncNexus.ViewModels;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using System.Security.Claims;
 
 namespace FinSyncNexus.Controllers;
 
@@ -13,17 +19,20 @@ public class AuthController : Controller
     private readonly XeroOAuthService _xeroOAuthService;
     private readonly QboOAuthService _qboOAuthService;
     private readonly SyncService _syncService;
+    private readonly AuthOptions _authOptions;
 
     public AuthController(
         AppDbContext db,
         XeroOAuthService xeroOAuthService,
         QboOAuthService qboOAuthService,
-        SyncService syncService)
+        SyncService syncService,
+        IOptions<AuthOptions> authOptions)
     {
         _db = db;
         _xeroOAuthService = xeroOAuthService;
         _qboOAuthService = qboOAuthService;
         _syncService = syncService;
+        _authOptions = authOptions.Value;
     }
 
     [HttpGet("xero/connect")]
@@ -128,5 +137,61 @@ public class AuthController : Controller
             TempData["Message"] = "QBO connected. Sync failed - check tokens/company.";
         }
         return RedirectToAction("Index", "Dashboard");
+    }
+
+    [HttpGet("login")]
+    public IActionResult Login(string? returnUrl)
+    {
+        var model = new LoginViewModel
+        {
+            ReturnUrl = returnUrl
+        };
+        return View(model);
+    }
+
+    [HttpPost("login")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Login(LoginViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        if (model.Username == _authOptions.Username && model.Password == _authOptions.Password)
+        {
+            var claims = new List<Claim>
+            {
+                new(ClaimTypes.Name, _authOptions.DisplayName),
+                new(ClaimTypes.NameIdentifier, model.Username)
+            };
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+
+            if (!string.IsNullOrWhiteSpace(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+            {
+                return Redirect(model.ReturnUrl);
+            }
+
+            return RedirectToAction("Index", "Dashboard");
+        }
+
+        model.ErrorMessage = "Invalid username or password.";
+        return View(model);
+    }
+
+    [HttpGet("logout")]
+    public IActionResult Logout()
+    {
+        return View();
+    }
+
+    [HttpPost("logout")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> LogoutConfirmed()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        return RedirectToAction("Login", "Auth");
     }
 }

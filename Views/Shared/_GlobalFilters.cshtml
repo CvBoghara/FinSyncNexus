@@ -1,0 +1,114 @@
+@model FinSyncNexus.ViewModels.FilterViewModel
+@{
+    var renderMode = (ViewData["RenderMode"] as string) ?? "Full";
+    var showButton = renderMode != "Badges";
+    var showBadges = renderMode != "Button";
+}
+
+@if (showButton)
+{
+    <div class="filter-bar">
+        <button class="btn btn-outline-light btn-filter" type="button" data-bs-toggle="modal" data-bs-target="#globalFiltersModal">
+            Filters
+        </button>
+    </div>
+}
+
+@if (showBadges)
+{
+    <div class="active-filters">
+        @foreach (var badge in Model.ActiveBadges)
+        {
+            <span class="filter-badge">@badge</span>
+        }
+    </div>
+}
+
+@if (showButton)
+{
+    <div class="modal fade" id="globalFiltersModal" tabindex="-1" aria-labelledby="globalFiltersLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content filter-modal">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="globalFiltersLabel">Global Filters</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form method="get" class="filter-panel">
+                    <div class="modal-body">
+                        <div class="filter-grid">
+                            <div class="filter-group">
+                                <label class="filter-label">Date Range</label>
+                                <select name="DatePreset" class="filter-select">
+                                    <option value="Today" selected="@(Model.DatePreset == "Today")">Today</option>
+                                    <option value="ThisMonth" selected="@(Model.DatePreset == "ThisMonth")">This Month</option>
+                                    <option value="Custom" selected="@(Model.DatePreset == "Custom")">Custom</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">From</label>
+                                <input type="date" name="FromDate" class="filter-select" value="@(Model.FromDate?.ToString("yyyy-MM-dd"))" />
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">To</label>
+                                <input type="date" name="ToDate" class="filter-select" value="@(Model.ToDate?.ToString("yyyy-MM-dd"))" />
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Accounting Software</label>
+                                <select name="Provider" class="filter-select">
+                                    <option value="All" selected="@(Model.Provider == "All")">All</option>
+                                    <option value="Xero" selected="@(Model.Provider == "Xero")">Xero</option>
+                                    <option value="QBO" selected="@(Model.Provider == "QBO")">QuickBooks Online</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Customer / Vendor</label>
+                                <input type="text" name="CustomerVendor" class="filter-select" value="@Model.CustomerVendor" placeholder="Search by name" />
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Account Type</label>
+                                <select name="AccountType" class="filter-select">
+                                    <option value="All" selected="@(Model.AccountType == "All")">All</option>
+                                    <option value="Income" selected="@(Model.AccountType == "Income")">Income</option>
+                                    <option value="Expense" selected="@(Model.AccountType == "Expense")">Expense</option>
+                                    <option value="Asset" selected="@(Model.AccountType == "Asset")">Asset</option>
+                                    <option value="Liability" selected="@(Model.AccountType == "Liability")">Liability</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Amount Min</label>
+                                <input type="number" step="0.01" name="AmountMin" class="filter-select" value="@(Model.AmountMin?.ToString() ?? string.Empty)" />
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Amount Max</label>
+                                <input type="number" step="0.01" name="AmountMax" class="filter-select" value="@(Model.AmountMax?.ToString() ?? string.Empty)" />
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Currency</label>
+                                <select name="Currency" class="filter-select">
+                                    <option value="All" selected="@(Model.Currency == "All")">All</option>
+                                    <option value="USD" selected="@(Model.Currency == "USD")">USD</option>
+                                    <option value="AUD" selected="@(Model.Currency == "AUD")">AUD</option>
+                                    <option value="GBP" selected="@(Model.Currency == "GBP")">GBP</option>
+                                    <option value="NZD" selected="@(Model.Currency == "NZD")">NZD</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label class="filter-label">Transaction Status</label>
+                                <select name="TransactionStatus" class="filter-select">
+                                    <option value="All" selected="@(Model.TransactionStatus == "All")">All</option>
+                                    <option value="Paid" selected="@(Model.TransactionStatus == "Paid")">Paid</option>
+                                    <option value="Unpaid" selected="@(Model.TransactionStatus == "Unpaid")">Unpaid</option>
+                                    <option value="Overdue" selected="@(Model.TransactionStatus == "Overdue")">Overdue</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer filter-actions">
+                        <button class="btn btn-primary" type="submit">Apply Filters</button>
+                        <a class="btn btn-outline-light" href="@Context.Request.Path">Reset</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}

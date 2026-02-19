@@ -1,21 +1,32 @@
+@using System.Globalization
+@using System.Text.Json
 @model FinSyncNexus.ViewModels.ReportViewModel
 @{
     ViewData["Title"] = "Reports";
+    var trendLabels = Model.ProfitLossTrend.Select(x => x.Label).ToList();
+    var incomeValues = Model.ProfitLossTrend.Select(x => x.Income).ToList();
+    var expenseValues = Model.ProfitLossTrend.Select(x => x.Expense).ToList();
+    var netValues = Model.ProfitLossTrend.Select(x => x.Net).ToList();
+    var expenseLabels = Model.ExpenseBreakdown.Select(x => x.Account).ToList();
+    var expenseTotals = Model.ExpenseBreakdown.Select(x => x.Amount).ToList();
+    var cashLabels = Model.CashFlowTrend.Select(x => x.Label).ToList();
+    var inflowValues = Model.CashFlowTrend.Select(x => x.Inflow).ToList();
+    var outflowValues = Model.CashFlowTrend.Select(x => x.Outflow).ToList();
 }
 
 <div class="page-header">
     <div>
-        <h1>Profit & Loss Report</h1>
-        <p class="page-subtitle">View combined financial reports from all connected platforms</p>
+        <h1>@Model.ReportTitle</h1>
+        <p class="page-subtitle">Selected range: @Model.Filters.DateRangeLabel</p>
     </div>
-    <form class="header-actions" asp-controller="Reports" asp-action="GenerateReport" method="post">
-        <div class="date-range">
-            <input type="date" name="fromDate" class="filter-select" value="@ViewBag.FromDate" />
-            <input type="date" name="toDate" class="filter-select" value="@ViewBag.ToDate" />
-        </div>
-        <button class="btn btn-primary" type="submit">Generate Report</button>
-    </form>
+    <div class="header-actions">
+        <a class="btn btn-outline-light" asp-controller="Reports" asp-action="Index" asp-all-route-data="Context.Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString())">Generate Report</a>
+        <a class="btn btn-outline-light" asp-controller="Reports" asp-action="ExportPdf" asp-all-route-data="Context.Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString())">Export PDF</a>
+        <a class="btn btn-primary" asp-controller="Reports" asp-action="ExportExcel" asp-all-route-data="Context.Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString())">Export Excel</a>
+    </div>
 </div>
+
+@await Html.PartialAsync("_GlobalFilters", Model.Filters)
 
 <div class="stats-grid">
     <div class="stat-card">
@@ -26,45 +37,207 @@
     <div class="stat-card">
         <div class="stat-icon bg-gold">↓</div>
         <div class="stat-value">@Model.TotalExpenses.ToString("C")</div>
-        <div class="stat-label">Total Expenses</div>
+        <div class="stat-label">Total Expense</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon bg-purple">⚖</div>
         <div class="stat-value">@Model.NetProfit.ToString("C")</div>
-        <div class="stat-label">Net Profit</div>
+        <div class="stat-label">Net Profit / Loss</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-blue">💧</div>
+        <div class="stat-value">@Model.CashBalance.ToString("C")</div>
+        <div class="stat-label">Cash Balance</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-purple">⇄</div>
+        <div class="stat-value">@Model.XeroIncome.ToString("C") / @Model.QboIncome.ToString("C")</div>
+        <div class="stat-label">Software Split (Xero / QBO)</div>
     </div>
 </div>
 
-<div class="content-grid">
+<div class="content-grid two-columns">
     <div class="panel report-panel">
         <div class="panel-header">
-            <h2>Income Breakdown</h2>
+            <h2>Profit & Loss Trend</h2>
         </div>
-        <div class="empty-state">
-            <div class="empty-icon">▭</div>
-            <div>No income data available</div>
-        </div>
+        <canvas id="profitLossChart" height="180"></canvas>
     </div>
     <div class="panel report-panel">
         <div class="panel-header">
             <h2>Expense Breakdown</h2>
         </div>
-        <table class="table table-dark table-hover">
+        <canvas id="expenseBreakdownChart" height="180"></canvas>
+    </div>
+    <div class="panel report-panel">
+        <div class="panel-header">
+            <h2>Software-wise Financial Comparison</h2>
+        </div>
+        <canvas id="softwareCompareChart" height="180"></canvas>
+    </div>
+    <div class="panel report-panel">
+        <div class="panel-header">
+            <h2>Cash Flow Overview</h2>
+        </div>
+        <canvas id="cashFlowChart" height="180"></canvas>
+    </div>
+</div>
+
+<div class="content-grid two-columns">
+    <div class="panel report-panel">
+        <div class="panel-header">
+            <h2>Top Customers by Revenue</h2>
+        </div>
+        <ul class="rank-list">
+            @foreach (var item in Model.TopCustomers)
+            {
+                <li>@item.Name <span>@item.Amount.ToString("C")</span></li>
+            }
+        </ul>
+    </div>
+    <div class="panel report-panel">
+        <div class="panel-header">
+            <h2>Top Vendors by Expense</h2>
+        </div>
+        <ul class="rank-list">
+            @foreach (var item in Model.TopVendors)
+            {
+                <li>@item.Name <span>@item.Amount.ToString("C")</span></li>
+            }
+        </ul>
+    </div>
+</div>
+
+<div class="panel report-panel">
+    <div class="panel-header">
+        <h2>Alerts (Rule-Based)</h2>
+    </div>
+    <ul class="alert-list">
+        @foreach (var alert in Model.Alerts)
+        {
+            <li>@alert</li>
+        }
+    </ul>
+</div>
+
+<div class="panel report-panel">
+    <div class="panel-header">
+        <h2>Transactions</h2>
+        <div class="table-tools">
+            <input id="reportSearch" class="filter-select" type="search" placeholder="Search transactions" />
+            <select id="reportTypeFilter" class="filter-select">
+                <option value="">All Types</option>
+                <option value="Inflow">Inflow</option>
+                <option value="Outflow">Outflow</option>
+            </select>
+            <select id="reportSourceFilter" class="filter-select">
+                <option value="">All Sources</option>
+                <option value="Xero">Xero</option>
+                <option value="QBO">QBO</option>
+            </select>
+        </div>
+    </div>
+    <div class="table-wrapper">
+        <table class="table table-dark table-hover" data-report-table>
             <thead>
                 <tr>
-                    <th>Account</th>
-                    <th class="text-end">Amount</th>
+                    <th data-sort="date">Date</th>
+                    <th data-sort="text">Description</th>
+                    <th data-sort="text">Account</th>
+                    <th data-sort="number">Amount</th>
+                    <th data-sort="text">Software Source</th>
+                    <th data-sort="text">Type</th>
                 </tr>
             </thead>
             <tbody>
-            @foreach (var item in Model.ExpenseBreakdown)
+            @foreach (var item in Model.Transactions)
             {
-                <tr>
+                <tr data-type="@item.Type" data-source="@item.Source">
+                    <td>@item.Date.ToString("MMM dd, yyyy")</td>
+                    <td>@item.Description</td>
                     <td>@item.Account</td>
-                    <td class="amount-red text-end">@item.Amount.ToString("C")</td>
+                    <td class="@(item.Type == "Outflow" ? "amount-red" : "amount-green")">@item.Amount.ToString("C")</td>
+                    <td>@item.Source</td>
+                    <td>@item.Type</td>
                 </tr>
             }
             </tbody>
         </table>
     </div>
+    <div class="table-footer">
+        <div id="reportPagination" class="pagination"></div>
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        window.reportChartData = {
+            trendLabels: @Html.Raw(JsonSerializer.Serialize(trendLabels)),
+            incomeValues: @Html.Raw(JsonSerializer.Serialize(incomeValues)),
+            expenseValues: @Html.Raw(JsonSerializer.Serialize(expenseValues)),
+            netValues: @Html.Raw(JsonSerializer.Serialize(netValues)),
+            expenseLabels: @Html.Raw(JsonSerializer.Serialize(expenseLabels)),
+            expenseTotals: @Html.Raw(JsonSerializer.Serialize(expenseTotals)),
+            cashLabels: @Html.Raw(JsonSerializer.Serialize(cashLabels)),
+            inflowValues: @Html.Raw(JsonSerializer.Serialize(inflowValues)),
+            outflowValues: @Html.Raw(JsonSerializer.Serialize(outflowValues)),
+            softwareValues: {
+                xeroIncome: @Model.XeroIncome.ToString(CultureInfo.InvariantCulture),
+                qboIncome: @Model.QboIncome.ToString(CultureInfo.InvariantCulture),
+                xeroExpense: @Model.XeroExpense.ToString(CultureInfo.InvariantCulture),
+                qboExpense: @Model.QboExpense.ToString(CultureInfo.InvariantCulture)
+            }
+        };
+    </script>
+    <script>
+        const charts = window.reportChartData;
+        if (charts) {
+            new Chart(document.getElementById("profitLossChart"), {
+                type: "line",
+                data: {
+                    labels: charts.trendLabels,
+                    datasets: [
+                        { label: "Income", data: charts.incomeValues, borderColor: "#22c55e", backgroundColor: "rgba(34,197,94,0.2)" },
+                        { label: "Expense", data: charts.expenseValues, borderColor: "#f97316", backgroundColor: "rgba(249,115,22,0.2)" },
+                        { label: "Net Profit", data: charts.netValues, borderColor: "#6366f1", backgroundColor: "rgba(99,102,241,0.2)" }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: "#e2e8f0" } } } }
+            });
+
+            new Chart(document.getElementById("expenseBreakdownChart"), {
+                type: "doughnut",
+                data: {
+                    labels: charts.expenseLabels,
+                    datasets: [{ data: charts.expenseTotals, backgroundColor: ["#f97316", "#facc15", "#ef4444", "#3b82f6", "#22c55e"] }]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: "#e2e8f0" } } } }
+            });
+
+            new Chart(document.getElementById("softwareCompareChart"), {
+                type: "bar",
+                data: {
+                    labels: ["Income", "Expense"],
+                    datasets: [
+                        { label: "Xero", data: [charts.softwareValues.xeroIncome, charts.softwareValues.xeroExpense], backgroundColor: "#3b82f6" },
+                        { label: "QBO", data: [charts.softwareValues.qboIncome, charts.softwareValues.qboExpense], backgroundColor: "#f97316" }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: "#e2e8f0" } } } }
+            });
+
+            new Chart(document.getElementById("cashFlowChart"), {
+                type: "line",
+                data: {
+                    labels: charts.cashLabels,
+                    datasets: [
+                        { label: "Inflow", data: charts.inflowValues, borderColor: "#22c55e", backgroundColor: "rgba(34,197,94,0.2)", fill: true },
+                        { label: "Outflow", data: charts.outflowValues, borderColor: "#ef4444", backgroundColor: "rgba(239,68,68,0.2)", fill: true }
+                    ]
+                },
+                options: { responsive: true, plugins: { legend: { labels: { color: "#e2e8f0" } } } }
+            });
+        }
+    </script>
+}
