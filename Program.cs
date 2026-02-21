@@ -1,4 +1,3 @@
-using FinSyncNexus.Options;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Infrastructure;
@@ -11,24 +10,28 @@ QuestPDF.Settings.License = LicenseType.Community;
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<FinSyncNexus.Data.AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("FinSyncNexusDb")));
-builder.Services.AddHttpClient();
-
 builder.Services.Configure<FinSyncNexus.Options.OAuthOptions>(
     builder.Configuration.GetSection("OAuth"));
-builder.Services.Configure<AuthOptions>(
-    builder.Configuration.GetSection("Auth"));
-builder.Services.AddScoped<FinSyncNexus.Services.SyncService>();
-builder.Services.AddScoped<FinSyncNexus.Services.XeroOAuthService>();
-builder.Services.AddScoped<FinSyncNexus.Services.QboOAuthService>();
+builder.Services.AddHttpClient<FinSyncNexus.Services.XeroOAuthService>();
+builder.Services.AddHttpClient<FinSyncNexus.Services.QboOAuthService>();
+builder.Services.AddHttpClient<FinSyncNexus.Services.SyncService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
         options.LoginPath = "/auth/login";
         options.LogoutPath = "/auth/logout";
         options.AccessDeniedPath = "/auth/login";
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
     });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<FinSyncNexus.Data.AppDbContext>();
+    db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

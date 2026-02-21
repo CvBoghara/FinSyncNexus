@@ -1,10 +1,13 @@
 using FinSyncNexus.Data;
 using FinSyncNexus.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace FinSyncNexus.Controllers;
 
+[Authorize]
 public class SyncController : Controller
 {
     private readonly AppDbContext _db;
@@ -16,10 +19,16 @@ public class SyncController : Controller
         _syncService = syncService;
     }
 
+    private int GetCurrentUserId() =>
+        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
     [HttpPost]
     public async Task<IActionResult> SyncNow()
     {
-        var connections = await _db.Connections.Where(c => c.IsConnected).ToListAsync();
+        var userId = GetCurrentUserId();
+        var connections = await _db.Connections
+            .Where(c => c.UserId == userId && c.IsConnected)
+            .ToListAsync();
 
         if (!connections.Any())
         {
@@ -30,10 +39,10 @@ public class SyncController : Controller
         var syncFailures = new List<string>();
         foreach (var connection in connections)
         {
-            var synced = await _syncService.SyncProviderAsync(connection);
+            var synced = await _syncService.SyncProviderAsync(connection, userId);
             if (synced)
             {
-                await _syncService.MarkSyncedAsync(connection.Provider);
+                await _syncService.MarkSyncedAsync(connection.Provider, userId);
             }
             else
             {

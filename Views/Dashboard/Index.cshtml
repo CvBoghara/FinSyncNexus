@@ -26,22 +26,22 @@
 <div class="stats-grid">
     <div class="stat-card">
         <div class="stat-icon bg-purple">$</div>
-        <div class="stat-value">@Model.TotalRevenue.ToString("C")</div>
+        <div class="stat-value">@(Model.TotalInvoices > 0 ? Model.TotalRevenue.ToString("C") : "Not Available")</div>
         <div class="stat-label">Total Revenue</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon bg-green">📄</div>
-        <div class="stat-value">@Model.TotalInvoices</div>
+        <div class="stat-value">@(Model.TotalInvoices > 0 ? Model.TotalInvoices : "Not Available")</div>
         <div class="stat-label">Total Invoices</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon bg-blue">👥</div>
-        <div class="stat-value">@Model.TotalCustomers</div>
+        <div class="stat-value">@(Model.TotalCustomers > 0 ? Model.TotalCustomers : "Not Available")</div>
         <div class="stat-label">Total Customers</div>
     </div>
     <div class="stat-card">
         <div class="stat-icon bg-gold">⏱</div>
-        <div class="stat-value">@Model.OutstandingAmount.ToString("C")</div>
+        <div class="stat-value">@(Model.TotalInvoices > 0 ? Model.OutstandingAmount.ToString("C") : "Not Available")</div>
         <div class="stat-label">Outstanding Amount</div>
     </div>
 </div>

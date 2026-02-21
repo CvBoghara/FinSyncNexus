@@ -10,61 +10,80 @@
     <link rel="stylesheet" href="~/FinSyncNexus.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <div class="app-shell">
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="brand-badge">FN</div>
-                <span>FinSync</span>
+    @if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        <div class="app-shell">
+            <aside class="sidebar">
+                <div class="brand">
+                    <div class="brand-badge">FN</div>
+                    <span>FinSync Nexus</span>
+                </div>
+
+                <nav class="side-nav">
+                    <div class="nav-section">Main</div>
+                    <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
+                        <span class="nav-icon">▦</span>Dashboard
+                    </a>
+
+                    <div class="nav-section">Accounting</div>
+                    <a class="nav-link" asp-controller="Invoices" asp-action="Index">
+                        <span class="nav-icon">🧾</span>Invoices
+                    </a>
+                    <a class="nav-link" asp-controller="Customers" asp-action="Index">
+                        <span class="nav-icon">👥</span>Customers
+                    </a>
+                    <a class="nav-link" asp-controller="Payments" asp-action="Index">
+                        <span class="nav-icon">💳</span>Payments
+                    </a>
+                    <a class="nav-link" asp-controller="Expenses" asp-action="Index">
+                        <span class="nav-icon">🧾</span>Expenses
+                    </a>
+                    <a class="nav-link" asp-controller="Accounts" asp-action="Index">
+                        <span class="nav-icon">📚</span>Accounts
+                    </a>
+
+                    <div class="nav-section">Analytics</div>
+                    <a class="nav-link" asp-controller="Reports" asp-action="Index">
+                        <span class="nav-icon">📈</span>Reports
+                    </a>
+
+                    <div class="nav-section">Settings</div>
+                    <a class="nav-link" asp-controller="Connections" asp-action="Index">
+                        <span class="nav-icon">🔌</span>Connections
+                    </a>
+                    <a class="nav-link" asp-controller="Auth" asp-action="Logout">
+                        <span class="nav-icon">⎋</span>Logout
+                    </a>
+                </nav>
+
+                <div class="sidebar-user">
+                    <div class="sidebar-user-avatar">@(string.IsNullOrWhiteSpace(User.Identity?.Name) ? "U" : User.Identity!.Name.Substring(0, 1).ToUpperInvariant())</div>
+                    <div class="sidebar-user-info">
+                        <div class="sidebar-user-name">@(User.Identity?.Name ?? "User")</div>
+                        <div class="sidebar-user-email">@User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</div>
+                    </div>
+                </div>
+            </aside>
+
+            <div class="content-area">
+                <main role="main">
+                    @RenderBody()
+                </main>
+
+                <footer>
+                    <div class="mt-5">&copy; 2026 - FinSyncNexus</div>
+                </footer>
             </div>
-
-            <nav class="side-nav">
-                <div class="nav-section">Main</div>
-                <a class="nav-link" asp-controller="Dashboard" asp-action="Index">
-                    <span class="nav-icon">▦</span>Dashboard
-                </a>
-
-                <div class="nav-section">Accounting</div>
-                <a class="nav-link" asp-controller="Invoices" asp-action="Index">
-                    <span class="nav-icon">🧾</span>Invoices
-                </a>
-                <a class="nav-link" asp-controller="Customers" asp-action="Index">
-                    <span class="nav-icon">👥</span>Customers
-                </a>
-                <a class="nav-link" asp-controller="Payments" asp-action="Index">
-                    <span class="nav-icon">💳</span>Payments
-                </a>
-                <a class="nav-link" asp-controller="Expenses" asp-action="Index">
-                    <span class="nav-icon">🧾</span>Expenses
-                </a>
-                <a class="nav-link" asp-controller="Accounts" asp-action="Index">
-                    <span class="nav-icon">📚</span>Accounts
-                </a>
-
-                <div class="nav-section">Analytics</div>
-                <a class="nav-link" asp-controller="Reports" asp-action="Index">
-                    <span class="nav-icon">📈</span>Reports
-                </a>
-
-                <div class="nav-section">Settings</div>
-                <a class="nav-link" asp-controller="Connections" asp-action="Index">
-                    <span class="nav-icon">🔌</span>Connections
-                </a>
-                <a class="nav-link" asp-controller="Home" asp-action="Privacy">
-                    <span class="nav-icon">⎋</span>Logout
-                </a>
-            </nav>
-        </aside>
-
-        <div class="content-area">
+        </div>
+    }
+    else
+    {
+        <div class="auth-page">
             <main role="main">
                 @RenderBody()
             </main>
-
-            <footer class="footer">
-                <div>&copy; 2026 - FinSyncNexus</div>
-            </footer>
         </div>
-    </div>
+    }
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

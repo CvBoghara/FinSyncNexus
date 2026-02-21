@@ -1,11 +1,14 @@
 using FinSyncNexus.Data;
 using FinSyncNexus.Helpers;
 using FinSyncNexus.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace FinSyncNexus.Controllers;
 
+[Authorize]
 public class InvoicesController : Controller
 {
     private readonly AppDbContext _db;
@@ -15,10 +18,16 @@ public class InvoicesController : Controller
         _db = db;
     }
 
+    private int GetCurrentUserId() =>
+        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
     public async Task<IActionResult> Index(FilterViewModel filters)
     {
+        var userId = GetCurrentUserId();
         filters = FilterEngine.Normalize(filters);
-        var query = FilterEngine.ApplyInvoiceFilters(_db.Invoices.AsNoTracking(), filters);
+
+        var query = FilterEngine.ApplyInvoiceFilters(
+            _db.Invoices.AsNoTracking().Where(i => i.UserId == userId), filters);
 
         var invoices = await query
             .OrderByDescending(i => i.CreatedAt)

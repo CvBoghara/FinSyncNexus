@@ -73,8 +73,8 @@ public static class FilterEngine
         {
             query = filters.TransactionStatus switch
             {
-                "Paid" => query.Where(i => i.Status == "PAID" || i.Status == "Paid"),
-                "Unpaid" => query.Where(i => i.Status == "OPEN" || i.Status == "Open"),
+                "Paid" => query.Where(i => i.Status.ToUpper() == "PAID"),
+                "Unpaid" => query.Where(i => i.Status.ToUpper() == "OPEN" || i.Status.ToUpper() == "AUTHORISED"),
                 "Overdue" => query.Where(i => i.DueDate.HasValue && i.DueDate.Value.Date < DateTime.Today),
                 _ => query
             };
@@ -94,9 +94,9 @@ public static class FilterEngine
         {
             var start = filters.FromDate.Value.Date;
             var end = filters.ToDate.Value.Date;
-            query = query.Where(i => i.DueDate.HasValue
-                ? i.DueDate.Value.Date >= start && i.DueDate.Value.Date <= end
-                : i.CreatedAt.Date >= start && i.CreatedAt.Date <= end);
+            query = query.Where(i =>
+                (i.DueDate.HasValue && i.DueDate.Value.Date >= start && i.DueDate.Value.Date <= end) ||
+                (i.CreatedAt.Date >= start && i.CreatedAt.Date <= end));
         }
 
         return query;

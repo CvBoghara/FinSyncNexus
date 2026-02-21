@@ -3,6 +3,7 @@ namespace FinSyncNexus.Models;
 public class ConnectionStatus
 {
     public int Id { get; set; }
+    public int UserId { get; set; }
     public string Provider { get; set; } = string.Empty; // "Xero" or "QBO"
     public bool IsConnected { get; set; }
     public DateTime ConnectedAt { get; set; }

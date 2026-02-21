@@ -5,8 +5,12 @@
 
 <div class="auth-container">
     <div class="auth-card">
-        <h1>Sign in</h1>
-        <p class="page-subtitle">Use your assigned credentials to access FinSync Nexus.</p>
+        <div class="auth-brand">
+            <div class="brand-badge">FN</div>
+            <span>FinSync Nexus</span>
+        </div>
+        <h1>Sign In</h1>
+        <p class="page-subtitle">Enter your credentials to access your FinSync Nexus dashboard.</p>
 
         @if (!string.IsNullOrWhiteSpace(Model.ErrorMessage))
         {
@@ -17,13 +21,27 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="ReturnUrl" value="@Model.ReturnUrl" />
 
-            <label class="auth-label" for="Username">Username</label>
-            <input id="Username" name="Username" class="filter-select auth-input" value="@Model.Username" />
+            <div class="auth-field">
+                <label class="auth-label" asp-for="Email">Email Address</label>
+                <input asp-for="Email" type="email" class="filter-select auth-input" placeholder="john@example.com" />
+                <span asp-validation-for="Email" class="text-danger auth-error"></span>
+            </div>
 
-            <label class="auth-label" for="Password">Password</label>
-            <input id="Password" name="Password" type="password" class="filter-select auth-input" />
+            <div class="auth-field">
+                <label class="auth-label" asp-for="Password">Password</label>
+                <input asp-for="Password" type="password" class="filter-select auth-input" placeholder="Enter your password" />
+                <span asp-validation-for="Password" class="text-danger auth-error"></span>
+            </div>
 
-            <button type="submit" class="btn btn-primary auth-submit">Login</button>
+            <button type="submit" class="btn btn-primary auth-submit">Sign In</button>
         </form>
+
+        <div class="auth-footer">
+            Don't have an account? <a asp-controller="Auth" asp-action="Register">Create one</a>
+        </div>
     </div>
 </div>
+
+@section Scripts {
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+}

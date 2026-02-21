@@ -52,12 +52,48 @@ namespace FinSyncNexus.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Provider", "ExternalId")
+                    b.HasIndex("UserId", "Provider", "ExternalId")
                         .IsUnique();
 
                     b.ToTable("Accounts");
+                });
+
+            modelBuilder.Entity("FinSyncNexus.Models.AppUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("FinSyncNexus.Models.ConnectionStatus", b =>
@@ -99,9 +135,12 @@ namespace FinSyncNexus.Migrations
                     b.Property<string>("TenantId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Provider")
+                    b.HasIndex("UserId", "Provider")
                         .IsUnique();
 
                     b.ToTable("Connections");
@@ -136,9 +175,12 @@ namespace FinSyncNexus.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Provider", "ExternalId")
+                    b.HasIndex("UserId", "Provider", "ExternalId")
                         .IsUnique();
 
                     b.ToTable("Customers");
@@ -182,13 +224,16 @@ namespace FinSyncNexus.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<string>("VendorName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("Provider", "ExternalId")
+                    b.HasIndex("UserId", "Provider", "ExternalId")
                         .IsUnique();
 
                     b.ToTable("Expenses");
@@ -232,9 +277,12 @@ namespace FinSyncNexus.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Provider", "ExternalId")
+                    b.HasIndex("UserId", "Provider", "ExternalId")
                         .IsUnique();
 
                     b.ToTable("Invoices");
@@ -282,9 +330,12 @@ namespace FinSyncNexus.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("Provider", "ExternalId")
+                    b.HasIndex("UserId", "Provider", "ExternalId")
                         .IsUnique();
 
                     b.ToTable("Payments");
@@ -315,6 +366,9 @@ namespace FinSyncNexus.Migrations
                     b.Property<string>("Provider")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 

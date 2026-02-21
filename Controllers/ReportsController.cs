@@ -2,12 +2,15 @@ using FinSyncNexus.Data;
 using FinSyncNexus.Helpers;
 using FinSyncNexus.Reports;
 using FinSyncNexus.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QuestPDF.Fluent;
+using System.Security.Claims;
 
 namespace FinSyncNexus.Controllers;
 
+[Authorize]
 public class ReportsController : Controller
 {
     private readonly AppDbContext _db;
@@ -16,6 +19,9 @@ public class ReportsController : Controller
     {
         _db = db;
     }
+
+    private int GetCurrentUserId() =>
+        int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
     public async Task<IActionResult> Index(FilterViewModel filters)
     {
@@ -87,9 +93,14 @@ public class ReportsController : Controller
 
     private async Task<ReportViewModel> BuildReportAsync(FilterViewModel filters)
     {
-        var invoiceQuery = FilterEngine.ApplyInvoiceFilters(_db.Invoices.AsNoTracking(), filters);
-        var expenseQuery = FilterEngine.ApplyExpenseFilters(_db.Expenses.AsNoTracking(), filters);
-        var paymentQuery = FilterEngine.ApplyPaymentFilters(_db.Payments.AsNoTracking(), filters);
+        var userId = GetCurrentUserId();
+
+        var invoiceQuery = FilterEngine.ApplyInvoiceFilters(
+            _db.Invoices.AsNoTracking().Where(i => i.UserId == userId), filters);
+        var expenseQuery = FilterEngine.ApplyExpenseFilters(
+            _db.Expenses.AsNoTracking().Where(e => e.UserId == userId), filters);
+        var paymentQuery = FilterEngine.ApplyPaymentFilters(
+            _db.Payments.AsNoTracking().Where(p => p.UserId == userId), filters);
 
         var invoices = await invoiceQuery.ToListAsync();
         var expenses = await expenseQuery.ToListAsync();

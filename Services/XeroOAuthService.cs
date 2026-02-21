@@ -64,7 +64,11 @@ public class XeroOAuthService
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
 
         var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Xero Token Exchange Error: {response.StatusCode} - {errorBody}");
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var tokenDoc = JsonDocument.Parse(json);
@@ -104,7 +108,11 @@ public class XeroOAuthService
         request.Headers.Authorization = new AuthenticationHeaderValue("Basic", basicAuth);
 
         var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Xero Token Refresh Error: {response.StatusCode} - {errorBody}");
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var tokenDoc = JsonDocument.Parse(json);
@@ -131,7 +139,11 @@ public class XeroOAuthService
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         var response = await _httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorBody = await response.Content.ReadAsStringAsync();
+            throw new HttpRequestException($"Xero Tenant Fetch Error: {response.StatusCode} - {errorBody}");
+        }
 
         var json = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(json);

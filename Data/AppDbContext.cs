@@ -9,6 +9,7 @@ public class AppDbContext : DbContext
     {
     }
 
+    public DbSet<AppUser> Users => Set<AppUser>();
     public DbSet<ConnectionStatus> Connections => Set<ConnectionStatus>();
     public DbSet<InvoiceRecord> Invoices => Set<InvoiceRecord>();
     public DbSet<CustomerRecord> Customers => Set<CustomerRecord>();
@@ -21,8 +22,15 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.Entity<AppUser>(entity =>
+        {
+            entity.HasIndex(u => u.Email).IsUnique();
+            entity.Property(u => u.Email).HasMaxLength(256);
+            entity.Property(u => u.FullName).HasMaxLength(100);
+        });
+
         modelBuilder.Entity<ConnectionStatus>()
-            .HasIndex(c => c.Provider)
+            .HasIndex(c => new { c.UserId, c.Provider })
             .IsUnique();
 
         modelBuilder.Entity<InvoiceRecord>()
@@ -30,15 +38,15 @@ public class AppDbContext : DbContext
             .HasPrecision(18, 2);
 
         modelBuilder.Entity<InvoiceRecord>()
-            .HasIndex(i => new { i.Provider, i.ExternalId })
+            .HasIndex(i => new { i.UserId, i.Provider, i.ExternalId })
             .IsUnique();
 
         modelBuilder.Entity<CustomerRecord>()
-            .HasIndex(c => new { c.Provider, c.ExternalId })
+            .HasIndex(c => new { c.UserId, c.Provider, c.ExternalId })
             .IsUnique();
 
         modelBuilder.Entity<AccountRecord>()
-            .HasIndex(a => new { a.Provider, a.ExternalId })
+            .HasIndex(a => new { a.UserId, a.Provider, a.ExternalId })
             .IsUnique();
 
         modelBuilder.Entity<PaymentRecord>()
@@ -46,7 +54,7 @@ public class AppDbContext : DbContext
             .HasPrecision(18, 2);
 
         modelBuilder.Entity<PaymentRecord>()
-            .HasIndex(p => new { p.Provider, p.ExternalId })
+            .HasIndex(p => new { p.UserId, p.Provider, p.ExternalId })
             .IsUnique();
 
         modelBuilder.Entity<ExpenseRecord>()
@@ -54,7 +62,7 @@ public class AppDbContext : DbContext
             .HasPrecision(18, 2);
 
         modelBuilder.Entity<ExpenseRecord>()
-            .HasIndex(e => new { e.Provider, e.ExternalId })
+            .HasIndex(e => new { e.UserId, e.Provider, e.ExternalId })
             .IsUnique();
     }
 }
