@@ -28,3 +28,6 @@ publish/
 
 # EF Core
 Migrations/*.Designer.cs
+
+# Documentation
+docs/

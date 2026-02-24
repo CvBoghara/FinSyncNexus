@@ -109,6 +109,13 @@ body {
 .content-area {
   flex: 1;
   padding: 32px;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.content-area > main {
+  flex: 1;
 }
 
 .page-header {
@@ -386,8 +393,10 @@ body {
 }
 
 .footer {
+  padding: 20px 0;
   margin-top: 40px;
   color: #64748b;
+  text-align: left;
 }
 
 .auth-page {
