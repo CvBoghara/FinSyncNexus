@@ -107,6 +107,10 @@ function initReportTable() {
     renderPage();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+        initReportTable();
+    });
+} else {
     initReportTable();
-});
+}

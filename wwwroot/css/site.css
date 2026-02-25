@@ -8,25 +8,33 @@ html {
   }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
   position: relative;
   min-height: 100%;
+  overflow-x: hidden;
 }
 
 body {
   margin-bottom: 60px;
+  overflow-x: hidden;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
+.form-floating>.form-control-plaintext::placeholder,
+.form-floating>.form-control::placeholder {
   color: var(--bs-secondary-color);
   text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
+.form-floating>.form-control-plaintext:focus::placeholder,
+.form-floating>.form-control:focus::placeholder {
   text-align: start;
 }
 
@@ -41,6 +49,7 @@ body {
 .app-shell {
   display: flex;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 .sidebar {
@@ -50,6 +59,18 @@ body {
   border-right: 1px solid #1f2937;
   display: flex;
   flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  overflow-y: auto;
+  z-index: 100;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar::-webkit-scrollbar {
+  display: none;
 }
 
 .brand {
@@ -112,9 +133,11 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  margin-left: 240px;
+  overflow-x: hidden;
 }
 
-.content-area > main {
+.content-area>main {
   flex: 1;
 }
 
@@ -124,6 +147,7 @@ body {
   align-items: center;
   margin-bottom: 24px;
 }
+
 .header-actions {
   display: flex;
   gap: 12px;
@@ -145,7 +169,7 @@ body {
 }
 
 .filter-select[type="date"] {
-  color-scheme:#e2e8f0 ;
+  color-scheme: #e2e8f0;
 }
 
 .filter-select[type="date"]::-webkit-calendar-picker-indicator {
@@ -232,6 +256,7 @@ body {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
+  margin-bottom: 24px;
 }
 
 .panel {
@@ -239,6 +264,7 @@ body {
   border: 1px solid #1f2937;
   border-radius: 16px;
   padding: 18px;
+  margin-bottom: 24px;
 }
 
 .panel-header {
@@ -395,8 +421,10 @@ body {
 .footer {
   padding: 20px 0;
   margin-top: 40px;
-  color: #64748b;
+  color: #94a3b8;
   text-align: left;
+  font-size: 14px;
+  border-top: 1px solid #1f2937;
 }
 
 .auth-page {

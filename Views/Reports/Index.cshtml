@@ -20,7 +20,6 @@
         <p class="page-subtitle">Selected range: @Model.Filters.DateRangeLabel</p>
     </div>
     <div class="header-actions">
-        <a class="btn btn-outline-light" asp-controller="Reports" asp-action="Index" asp-all-route-data="Context.Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString())">Generate Report</a>
         <a class="btn btn-outline-light" asp-controller="Reports" asp-action="ExportPdf" asp-all-route-data="Context.Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString())">Export PDF</a>
         <a class="btn btn-primary" asp-controller="Reports" asp-action="ExportExcel" asp-all-route-data="Context.Request.Query.ToDictionary(k => k.Key, v => v.Value.ToString())">Export Excel</a>
     </div>

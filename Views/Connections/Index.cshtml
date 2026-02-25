@@ -27,7 +27,17 @@
                     Status: <strong>@(connection.IsConnected ? "Connected" : "Not connected")</strong>
                 </div>
                 <div class="connection-body">
-                    Last Sync: @(connection.LastSyncAt?.ToString("g") ?? "Not synced")
+                    Last Sync:
+                    @if (connection.LastSyncAt.HasValue)
+                    {
+                        var ist = TimeZoneInfo.FindSystemTimeZoneById("India Standard Time");
+                        var istTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(connection.LastSyncAt.Value, DateTimeKind.Utc), ist);
+                        @istTime.ToString("dd/MM/yyyy hh:mm tt")
+                    }
+                    else
+                    {
+                        <span>Not synced</span>
+                    }
                 </div>
                 <div class="mt-3">
                     @if (connection.Provider == "Xero")
