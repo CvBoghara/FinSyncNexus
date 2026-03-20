@@ -29,7 +29,7 @@
                 <th>Provider</th>
                 <th>Name</th>
                 <th>Email</th>
-                <th>Phone</th>
+
                 <th>Provider</th>
             </tr>
         </thead>
@@ -37,7 +37,7 @@
         @if (!Model.Any())
         {
             <tr>
-                <td colspan="4" class="text-muted">No customers available.</td>
+                <td colspan="3" class="text-muted">No customers available.</td>
             </tr>
         }
         else
@@ -48,7 +48,7 @@
                     <td>@customer.Provider</td>
                     <td>@customer.Name</td>
                     <td>@(customer.Email ?? "-")</td>
-                    <td>@(customer.Phone ?? "-")</td>
+
                     <td><span class="pill-provider @(customer.Provider == "QBO" ? "pill-qbo" : "pill-xero")">@customer.Provider</span></td>
                 </tr>
             }
